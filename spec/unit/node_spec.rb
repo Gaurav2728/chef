@@ -453,8 +453,9 @@ describe Chef::Node do
           expect( node["mysql"]["server"][0]["port"] ).to be_nil
         end
 
-        it "does not have a horrible error message when mistaking arrays for hashes" do
-          expect { node.rm("mysql", "server", "port") }.to raise_error(TypeError, "Wrong type in index of attribute (did you use a Hash index on an Array?)")
+        it "when mistaking arrays for hashes, it considers the value removed and does nothing" do
+          node.rm("mysql", "server", "port")
+          expect(node["mysql"]["server"][0]["port"]).to eql(3456)
         end
       end
     end

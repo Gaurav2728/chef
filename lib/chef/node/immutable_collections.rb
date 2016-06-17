@@ -182,6 +182,36 @@ class Chef
         end
       end
 
+      # method-style accss to attributes
+
+      def write(*path, last, value)
+        raise Exceptions::ImmutableAttributeModification
+      end
+
+      def write!(*path, value)
+        raise Exceptions::ImmutableAttributeModification
+      end
+
+      def read(*path)
+        begin
+          read!(*path)
+        rescue NoMethodError
+          nil
+        end
+      end
+
+      def read!(*path)
+        path.inject(self) { |memo, key| memo[key] }
+      end
+
+      def unlink(*path, last)
+        raise Exceptions::ImmutableAttributeModification
+      end
+
+      def unlink!(*path)
+        raise Exceptions::ImmutableAttributeModification
+      end
+
       # Mash uses #convert_value to mashify values on input.
       # Since we're handling this ourselves, override it to be a no-op
       def convert_value(value)

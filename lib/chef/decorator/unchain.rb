@@ -1,5 +1,5 @@
 class Chef
-  class Decorator
+  class Decorator < SimpleDelegator
     #
     # This decorator unchains method call chains and turns them into method calls
     # with variable args.  So this:

@@ -218,7 +218,7 @@ describe Chef::Node::Attribute do
     end
 
     it "gives the value at each level of precedence for a path spec" do
-      expected = [["set_unless_enabled?", false],
+      expected = [
         %w{default default},
         %w{env_default env_default},
         %w{role_default role_default},
@@ -415,12 +415,6 @@ describe Chef::Node::Attribute do
       @attributes.normal["foo"] = Mash.new
       @attributes.normal["foo"]["bar"] = :baz
       expect(@attributes.normal["foo"]["bar"]).to eq(:baz)
-    end
-
-    it "should optionally skip setting the value if one already exists" do
-      @attributes.set_unless_value_present = true
-      @attributes.normal["hostname"] = "bar"
-      expect(@attributes["hostname"]).to eq("latte")
     end
 
     it "does not support ||= when setting" do

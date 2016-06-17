@@ -96,10 +96,6 @@ class Chef
     #   in the creation of a new VividMash for that key. (This only works when
     #   using the element reference method, `[]` -- other methods, such as
     #   #fetch, work as normal).
-    # * It supports a set_unless flag (via the root Attribute object) which
-    #   allows `||=` style behavior (`||=` does not work with
-    #   auto-vivification). This is only implemented for #[]=; methods such as
-    #   #store work as normal.
     # * attr_accessor style element set and get are supported via method_missing
     class VividMash < Mash
       attr_reader :root
@@ -148,12 +144,8 @@ class Chef
 
       def []=(key, value)
         root.top_level_breadcrumb ||= key
-        if set_unless? && key?(key) && !self[key].nil?
-          self[key]
-        else
-          root.reset_cache(root.top_level_breadcrumb)
-          super
-        end
+        root.reset_cache(root.top_level_breadcrumb)
+        super
       end
 
       alias :attribute? :has_key?
@@ -176,8 +168,57 @@ class Chef
         end
       end
 
-      def set_unless?
-        @root.set_unless?
+      # method-style accss to attributes
+
+      # - autovivifying / autoreplacing writer
+      # - non-container-ey intermediate objects are replaced with hashes
+      def write(*path, last, value)
+        prev_memo = prev_key = nil
+        chain = path.inject(self) do |memo, key|
+          unless memo.respond_to?(:[])
+            prev_memo[prev_key] = {}
+            memo = prev_memo[prev_key]
+          end
+          prev_memo = memo
+          prev_key = key
+          memo[key]
+        end
+        unless chain.respond_to?(:[]=)
+          prev_memo[prev_key] = {}
+          chain = prev_memo[prev_key]
+        end
+        root.reset_cache
+        chain[last] = value
+      end
+
+      # can trainwreck with NoMethodError and does not autovifify
+      def write!(*path, value)
+        obj = path.inject(self) { |memo, key| memo[key] }
+        root.reset_cache
+        obj[last] = value
+      end
+
+      def read(*path)
+        begin
+          read!(*path)
+        rescue NoMethodError
+          nil
+        end
+      end
+
+      def read!(*path)
+        path.inject(self) { |memo, key| memo[key] }
+      end
+
+      def unlink(*path, last)
+        root.reset_cache
+        hash = read(*path)
+        return nil unless hash.is_a?(Hash)
+        hash.delete(last)
+      end
+
+      def unlink!(*path)
+        raise "not implemented"
       end
 
       def convert_key(key)
