@@ -1569,4 +1569,19 @@ describe Chef::Node do
     end
   end
 
+  describe "method_missing handling" do
+    it "should have an #empty? method via Chef::Node::Attribute" do
+      node.default["foo"] = "bar"
+      expect(node.empty?).to be false
+    end
+
+    it "it should correctly implement #respond_to?" do
+      expect(node.respond_to?(:empty?)).to be true
+    end
+
+    it "it should correctly retrieve the method with #method" do
+      expect(node.method(:empty?)).to be_kind_of(Method)
+    end
+  end
+
 end
