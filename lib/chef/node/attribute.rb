@@ -419,7 +419,7 @@ class Chef
       end
 
       def write!(level, *path, value)
-        raise "not implemented yet"
+        self.send(level).write!(*path, value)
       end
 
       def read(*path)
@@ -439,7 +439,7 @@ class Chef
       end
 
       def unlink!(level, *path)
-        raise "not implemented"
+        self.send(level).unlink!(*path)
       end
 
        #
