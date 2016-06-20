@@ -329,6 +329,12 @@ describe Chef::Node do
         expect(node[:snoopy][:is_a_puppy]).to eq(true)
       end
 
+      it "does not exhibit chef/chef/issues/5005 bug" do
+        node.env_default["a"]["r1"]["g"]["u"] = "u1"
+        node.default_unless["a"]["r1"]["g"]["r"] = "r"
+        expect(node["a"]["r1"]["g"]["u"]).to eql("u1")
+      end
+
       it "auto-vivifies attributes created via method syntax" do
         node.default.fuu.bahrr.baz = "qux"
         expect(node.fuu.bahrr.baz).to eq("qux")
