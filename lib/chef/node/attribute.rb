@@ -479,7 +479,11 @@ class Chef
         write(:override, *args) if read(*args[0...-1]).nil?
       end
 
-      alias_method :set_unless, :normal_unless
+      def set_unless(*args)
+        Chef.log_deprecation("node.set_unless is deprecated, please use node.default_unless/node.override_unless (or node.normal_unless if you really need persistence)")
+        return Decorator::Unchain.new(self, :default_unless) unless args.length > 0
+        write(:normal, *args) if read(*args[0...-1]).nil?
+      end
 
       def [](key)
         if deep_merge_cache.has_key?(key.to_s)

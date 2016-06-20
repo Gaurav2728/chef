@@ -233,7 +233,7 @@ describe Chef::Node do
     end
 
     it "should let you go deep with attribute?" do
-      node.set["battles"]["people"]["wonkey"] = true
+      node.normal["battles"]["people"]["wonkey"] = true
       expect(node["battles"]["people"].attribute?("wonkey")).to eq(true)
       expect(node["battles"]["people"].attribute?("snozzberry")).to eq(false)
     end
@@ -249,44 +249,44 @@ describe Chef::Node do
 
     describe "normal attributes" do
       it "should allow you to set an attribute with set, without pre-declaring a hash" do
-        node.set[:snoopy][:is_a_puppy] = true
+        node.normal[:snoopy][:is_a_puppy] = true
         expect(node[:snoopy][:is_a_puppy]).to eq(true)
       end
 
       it "should allow you to set an attribute with set_unless" do
-        node.set_unless[:snoopy][:is_a_puppy] = false
+        node.normal_unless[:snoopy][:is_a_puppy] = false
         expect(node[:snoopy][:is_a_puppy]).to eq(false)
       end
 
       it "should not allow you to set an attribute with set_unless if it already exists" do
-        node.set[:snoopy][:is_a_puppy] = true
-        node.set_unless[:snoopy][:is_a_puppy] = false
+        node.normal[:snoopy][:is_a_puppy] = true
+        node.normal_unless[:snoopy][:is_a_puppy] = false
         expect(node[:snoopy][:is_a_puppy]).to eq(true)
       end
 
       it "should allow you to set an attribute with set_unless if is a nil value" do
         node.attributes.normal = { snoopy: { is_a_puppy: nil } }
-        node.set_unless[:snoopy][:is_a_puppy] = false
+        node.normal_unless[:snoopy][:is_a_puppy] = false
         expect(node[:snoopy][:is_a_puppy]).to eq(false)
       end
 
       it "should allow you to set a value after a set_unless" do
         # this tests for set_unless_present state bleeding between statements CHEF-3806
-        node.set_unless[:snoopy][:is_a_puppy] = false
-        node.set[:snoopy][:is_a_puppy] = true
+        node.normal_unless[:snoopy][:is_a_puppy] = false
+        node.normal[:snoopy][:is_a_puppy] = true
         expect(node[:snoopy][:is_a_puppy]).to eq(true)
       end
 
       it "should let you set a value after a 'dangling' set_unless" do
         # this tests for set_unless_present state bleeding between statements CHEF-3806
-        node.set[:snoopy][:is_a_puppy] = "what"
-        node.set_unless[:snoopy][:is_a_puppy]
-        node.set[:snoopy][:is_a_puppy] = true
+        node.normal[:snoopy][:is_a_puppy] = "what"
+        node.normal_unless[:snoopy][:is_a_puppy]
+        node.normal[:snoopy][:is_a_puppy] = true
         expect(node[:snoopy][:is_a_puppy]).to eq(true)
       end
 
       it "auto-vivifies attributes created via method syntax" do
-        node.set.fuu.bahrr.baz = "qux"
+        node.normal.fuu.bahrr.baz = "qux"
         expect(node.fuu.bahrr.baz).to eq("qux")
       end
 
@@ -294,6 +294,20 @@ describe Chef::Node do
         node.normal["tags"] = %w{one two}
         node.tag("three", "four")
         expect(node["tags"]).to eq(%w{one two three four})
+      end
+
+      it "set is a deprecated alias for normal" do
+        Chef::Config[:treat_deprecation_warnings_as_errors] = false
+        expect(Chef).to receive(:log_deprecation).with(/set is deprecated/)
+        node.set[:snoopy][:is_a_puppy] = true
+        expect(node[:snoopy][:is_a_puppy]).to eq(true)
+      end
+
+      it "set_unless is a deprecated alias for normal_unless" do
+        Chef::Config[:treat_deprecation_warnings_as_errors] = false
+        expect(Chef).to receive(:log_deprecation).with(/set_unless is deprecated/)
+        node.set_unless[:snoopy][:is_a_puppy] = false
+        expect(node[:snoopy][:is_a_puppy]).to eq(false)
       end
     end
 

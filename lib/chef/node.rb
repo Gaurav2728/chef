@@ -201,7 +201,10 @@ class Chef
       attributes.normal
     end
 
-    alias_method :set, :normal
+    def set
+      Chef.log_deprecation("node.set is deprecated, please use node.default/node.override (or node.normal only if you really need persistence)")
+      normal
+    end
 
     # Set a default of this node, but auto-vivify any Mashes that might
     # be missing
