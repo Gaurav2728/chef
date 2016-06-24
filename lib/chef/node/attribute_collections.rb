@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-require 'chef/node/common_api'
+require "chef/node/common_api"
 
 class Chef
   class Node
