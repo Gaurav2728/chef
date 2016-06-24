@@ -1,3 +1,21 @@
+#--
+# Copyright:: Copyright 2012-2016, Chef Software, Inc.
+# License:: Apache License, Version 2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+require 'chef/node/common_api'
 
 class Chef
   class Node
@@ -124,6 +142,7 @@ class Chef
     class ImmutableMash < Mash
 
       include Immutablize
+      include CommonAPI
 
       alias :internal_set :[]=
       private :internal_set
@@ -144,6 +163,10 @@ class Chef
         :replace,
         :select!,
         :shift,
+        :write,
+        :write!,
+        :unlink,
+        :unlink!,
       ]
 
       def initialize(mash_data)
@@ -186,32 +209,45 @@ class Chef
 
       # method-style accss to attributes
 
-      def write(*path, last, value)
-        raise Exceptions::ImmutableAttributeModification
+      # return true or false based on if the attribute exists
+      def exist?(*path)
+        path.inject(self) do |memo, key|
+          if memo.is_a?(Hash)
+            if memo.key?(key)
+              memo[key]
+            else
+              return false
+            end
+          elsif memo.is_a?(Array)
+            if !key.is_a?(Fixnum)
+              return false
+            elsif memo.length > key
+              memo[key]
+            else
+              return false
+            end
+          else
+            return false
+          end
+        end
+        return true
       end
 
-      def write!(*path, value)
-        raise Exceptions::ImmutableAttributeModification
-      end
-
+      # this is a safe non-autovivifying reader that returns nil if the attribute does not exist
       def read(*path)
         begin
           read!(*path)
-        rescue NoMethodError
+        rescue Chef::Exceptions::NoSuchAttribute
           nil
         end
       end
 
+      # non-autovivifying reader that throws an exception if the attribute does not exist
       def read!(*path)
-        path.inject(self) { |memo, key| memo[key] }
-      end
-
-      def unlink(*path, last)
-        raise Exceptions::ImmutableAttributeModification
-      end
-
-      def unlink!(*path)
-        raise Exceptions::ImmutableAttributeModification
+        raise Chef::Exceptions::NoSuchAttribute unless exist?(*path)
+        path.inject(self) do |memo, key|
+          memo[key]
+        end
       end
 
       # Mash uses #convert_value to mashify values on input.

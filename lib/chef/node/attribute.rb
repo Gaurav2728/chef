@@ -415,30 +415,24 @@ class Chef
 
       # method-style access to attributes
 
-      def exist?(*path)
-        raise "FIXME"
-      end
-
       def read(*path)
-        raise "FIXME"
-        begin
-          read!(*path)
-        rescue NoMethodError
-          nil
-        end
+        merged_attributes.read(*path)
       end
 
       def read!(*path)
-        raise "FIXME"
-        path.inject(self) { |memo, key| memo[key] }
+        merged_attributes.read!(*path)
       end
 
-      def write(level, *path, value)
-        self.send(level).write(*path, value)
+      def exist?(*path)
+        merged_attributes.exist?(*path)
       end
 
-      def write!(level, *path, value)
-        self.send(level).write!(*path, value)
+      def write(level, *args, &block)
+        self.send(level).write(*args, &block)
+      end
+
+      def write!(level, *args, &block)
+        self.send(level).write!(*args, &block)
       end
 
       def unlink(level, *path)
