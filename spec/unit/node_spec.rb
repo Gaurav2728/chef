@@ -773,6 +773,51 @@ describe Chef::Node do
       expect(seen_attributes["sunshine"]).to eq("is bright")
       expect(seen_attributes["canada"]).to eq("is a nice place")
     end
+
+    describe "functional attribute API" do
+      # deeper functional testing of this API is in the VividMash spec tests
+      it "should have an exist? function" do
+        node.default["foo"]["bar"] = "baz"
+        expect(node.exist?("foo", "bar")).to be true
+        expect(node.exist?("bar", "foo")).to be false
+      end
+
+      it "should have a read function" do
+        node.override["foo"]["bar"] = "baz"
+        expect(node.read("foo", "bar")).to eql("baz")
+        expect(node.read("bar", "foo")).to eql(nil)
+      end
+
+      it "should have a read! function" do
+        node.override["foo"]["bar"] = "baz"
+        expect(node.read!("foo", "bar")).to eql("baz")
+        expect { node.read!("bar", "foo") }.to raise_error(Chef::Exceptions::NoSuchAttribute)
+      end
+
+      it "delegates write(:level) to node.level.write()" do
+        node.write(:default, "foo", "bar", "baz")
+        expect(node.default["foo"]["bar"]).to eql("baz")
+      end
+
+      it "delegates write!(:level) to node.level.write!()" do
+        node.write!(:default, "foo", "bar", "baz")
+        expect(node.default["foo"]["bar"]).to eql("baz")
+        node.default["bar"] = true
+        expect { node.write!(:default, "bar", "foo", "baz") }.to raise_error(Chef::Exceptions::AttributeTypeMismatch)
+      end
+
+      it "delegates unlink(:level) to node.level.unlink()" do
+        node.default["foo"]["bar"] = "baz"
+        expect(node.unlink(:default, "foo", "bar")).to eql("baz")
+        expect(node.unlink(:default, "bar", "foo")).to eql(nil)
+      end
+
+      it "delegates unlink!(:level) to node.level.unlink!()" do
+        node.default["foo"]["bar"] = "baz"
+        expect(node.unlink!(:default, "foo", "bar")).to eql("baz")
+        expect { node.unlink!(:default, "bar", "foo") }.to raise_error(Chef::Exceptions::NoSuchAttribute)
+      end
+    end
   end
 
   describe "consuming json" do
