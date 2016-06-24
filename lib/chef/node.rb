@@ -202,7 +202,7 @@ class Chef
     end
 
     def set
-      Chef.log_deprecation("node.set is deprecated, please use node.default/node.override (or node.normal only if you really need persistence)")
+      Chef.log_deprecation("node.set is deprecated and will be removed in Chef 14, please use node.default/node.override (or node.normal only if you really need persistence)")
       normal
     end
 
